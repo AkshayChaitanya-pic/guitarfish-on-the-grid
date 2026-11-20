@@ -237,8 +237,6 @@ write.csv(
   row.names = FALSE
 )
 
-cat("\nScript 08 completed.\n")
-
 
 # ============================================================
 # 8. DECOMPOSE DEPTH-MASK EXCLUSIONS
@@ -342,4 +340,121 @@ write.csv(
 )
 
 cat("\nDepth-mask exclusion audit completed.\n")
+
+
+# ============================================================
+# 9. VECTOR-FIRST SPATIAL OVERLAP VALIDATION
+# ============================================================
+
+# Use an equal-area CRS for geometric operations
+crs_area <- 3577
+
+npf_aea <- st_transform(npf, crs_area)
+range_aea <- st_transform(guitarfish, crs_area)
+
+vector_results <- vector("list", length(classes))
+
+for (i in seq_along(classes)) {
+  
+  current_class <- classes[i]
+  
+  class_sf <- npf_aea |>
+    filter(RelativeIntensity == current_class)
+  
+  # Merge polygons belonging to this intensity class
+  class_union <- st_union(st_geometry(class_sf))
+  
+  # Exact vector intersection with expert distribution
+  intersection <- st_intersection(
+    class_union,
+    st_union(st_geometry(range_aea))
+  )
+  
+  # Convert to sf, transform to GEBCO CRS
+  intersection_sf <- st_sf(
+    geometry = intersection
+  ) |>
+    st_transform(crs(gebco))
+  
+  # Exact vector intersection area
+  vector_area <- sum(
+    as.numeric(st_area(intersection))
+  ) / 1e6
+  
+  # Fractional raster coverage of the intersection
+  intersection_coverage <- terra::rasterize(
+    terra::vect(intersection_sf),
+    study_raster,
+    cover = TRUE,
+    background = 0
+  )
+  
+  # Raster-estimated baseline overlap
+  raster_area <- terra::global(
+    cell_area * intersection_coverage,
+    "sum",
+    na.rm = TRUE
+  )[1, 1]
+  
+  # Raster-estimated shallow-water overlap
+  shallow_area <- terra::global(
+    cell_area * intersection_coverage * shallow,
+    "sum",
+    na.rm = TRUE
+  )[1, 1]
+  
+  # Deep-water overlap
+  deep_area <- terra::global(
+    cell_area * intersection_coverage *
+      (study_raster < -100),
+    "sum",
+    na.rm = TRUE
+  )[1, 1]
+  
+  # At/above sea level
+  non_submerged_area <- terra::global(
+    cell_area * intersection_coverage *
+      (study_raster >= 0),
+    "sum",
+    na.rm = TRUE
+  )[1, 1]
+  
+  vector_results[[i]] <- data.frame(
+    RelativeIntensity = current_class,
+    vector_baseline_km2 = vector_area,
+    raster_baseline_km2 = raster_area,
+    shallow_km2 = shallow_area,
+    deep_km2 = deep_area,
+    non_submerged_km2 = non_submerged_area
+  )
+}
+
+vector_validation <- bind_rows(vector_results) |>
+  mutate(
+    area_difference_km2 =
+      raster_baseline_km2 - vector_baseline_km2,
+    difference_percent =
+      100 * area_difference_km2 / vector_baseline_km2
+  )
+
+cat("\n--- VECTOR-FIRST VALIDATION ---\n")
+print(vector_validation, digits = 6)
+
+cat("\n--- VALIDATION TOTALS ---\n")
+print(
+  vector_validation |>
+    summarise(
+      across(
+        where(is.numeric),
+        sum
+      )
+    ),
+  digits = 6
+)
+
+write.csv(
+  vector_validation,
+  here("outputs", "vector_first_overlap_validation.csv"),
+  row.names = FALSE
+)
 
