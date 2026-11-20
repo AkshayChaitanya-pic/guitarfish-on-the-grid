@@ -1,0 +1,14 @@
+metric,value,unit
+Total mapped NPF area,129500.764128327,km2
+NPF area overlapping CSIRO distribution,117412.600189358,km2
+Baseline spatial overlap,90.66556555064771,percent
+GEBCO-screened overlap area,114303.885243664,km2
+GEBCO-screened overlap,88.26502763365637,percent
+Area excluded by GEBCO screen,3108.71494568219,km2
+Excluded area classified as deeper than 100 m,5.65290794068521,km2
+Excluded area classified as elevation >= 0 m,3103.062037741505,km2
+Northern OBIS records,105,records
+OBIS records inside NPF,26,records
+OBIS records inside CSIRO,75,records
+OBIS records inside both,11,records
+Recent OBIS records inside NPF,2,records

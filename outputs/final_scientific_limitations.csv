@@ -1,0 +1,7 @@
+component,limitation
+NPF fishing intensity,Relative fishing-intensity polygons do not measure guitarfish bycatch or mortality.
+CSIRO distribution,"Expert-derived distribution represents a broad geographic range, not abundance or confirmed presence at every location."
+Temporal alignment,"CSIRO distribution was last updated in 2008, whereas the fishing-intensity layer represents 2024."
+GEBCO depth screening,"Most area excluded by the depth screen is classified as elevation >= 0 m, potentially reflecting coastal alignment and elevation uncertainty."
+OBIS occurrence evidence,"Records vary in date, sampling effort, source and spatial-quality flags; they do not represent a systematic abundance survey."
+Spatial overlap interpretation,"Geographic coincidence identifies potential spatial exposure, not actual animal-trawl encounters or individual risk."
