@@ -1,0 +1,16 @@
+"observation_period","basisOfRecord","flags","records"
+"Historical (<2020)","PreservedSpecimen","NO_DEPTH",20
+"Recent (2020-2026)","HumanObservation","NO_DEPTH,ON_LAND",12
+"Undated","PreservedSpecimen","NO_DEPTH",11
+"Historical (<2020)","MachineObservation","NO_DEPTH",10
+"Recent (2020-2026)","HumanObservation",NA,10
+"Recent (2020-2026)","HumanObservation","NO_DEPTH",8
+"Historical (<2020)","HumanObservation",NA,7
+"Historical (<2020)","PreservedSpecimen","NO_DEPTH,ON_LAND",7
+"Undated","PreservedSpecimen","NO_DEPTH,ON_LAND",6
+"Historical (<2020)","HumanObservation","ON_LAND",5
+"Historical (<2020)","HumanObservation","NO_DEPTH",3
+"Historical (<2020)","HumanObservation","NO_DEPTH,ON_LAND",2
+"Historical (<2020)","PreservedSpecimen",NA,2
+"Undated","HumanObservation","NO_DEPTH",1
+"Undated","HumanObservation","NO_DEPTH,ON_LAND",1

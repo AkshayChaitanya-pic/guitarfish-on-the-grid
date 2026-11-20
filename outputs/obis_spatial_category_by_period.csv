@@ -1,0 +1,11 @@
+"observation_period","spatial_category","records"
+"Historical (<2020)","CSIRO range only",27
+"Historical (<2020)","NPF and CSIRO range",3
+"Historical (<2020)","NPF only",15
+"Historical (<2020)","Outside both",11
+"Recent (2020-2026)","CSIRO range only",25
+"Recent (2020-2026)","NPF and CSIRO range",2
+"Recent (2020-2026)","Outside both",3
+"Undated","CSIRO range only",12
+"Undated","NPF and CSIRO range",6
+"Undated","Outside both",1
