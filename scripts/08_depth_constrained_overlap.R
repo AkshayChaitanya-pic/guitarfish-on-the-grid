@@ -458,3 +458,25 @@ write.csv(
   row.names = FALSE
 )
 
+
+# ============================================================
+# 10. FINAL VECTOR-RASTER AGREEMENT CHECK
+# ============================================================
+
+validation_totals <- vector_validation |>
+  summarise(
+    vector_total_km2 = sum(vector_baseline_km2),
+    raster_total_km2 = sum(raster_baseline_km2),
+    difference_km2 = raster_total_km2 - vector_total_km2,
+    difference_percent =
+      100 * difference_km2 / vector_total_km2
+  )
+
+print(validation_totals, digits = 8)
+
+stopifnot(
+  abs(validation_totals$difference_percent) < 0.01
+)
+
+cat("\nVector-raster area validation passed.\n")
+
