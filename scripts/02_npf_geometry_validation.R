@@ -64,3 +64,62 @@ st_write(
 )
 
 cat("Processed data saved successfully.\n")
+
+# ============================================================
+# 8. SPATIAL QUALITY CONTROL
+# ============================================================
+
+# Use Australian Albers for area calculations
+crs_area <- 3577
+
+# Original geometries
+original_aea <- st_transform(npf_rfi_2024, crs_area)
+
+# Repaired geometries
+fixed_aea <- st_transform(npf_rfi_fixed, crs_area)
+
+# Compare area before and after repair
+area_original <- as.numeric(st_area(original_aea))
+area_fixed <- as.numeric(st_area(fixed_aea))
+
+area_comparison <- data.frame(
+  feature = seq_along(area_original),
+  original_km2 = area_original / 1e6,
+  repaired_km2 = area_fixed / 1e6,
+  difference_km2 = (area_fixed - area_original) / 1e6
+)
+
+cat("\n--- GEOMETRY REPAIR AREA COMPARISON ---\n")
+
+print(
+  area_comparison[
+    order(-abs(area_comparison$difference_km2)),
+  ][1:5, ]
+)
+
+cat(
+  "\nTotal absolute area change (km2):",
+  sum(abs(area_comparison$difference_km2)),
+  "\n"
+)
+
+# ============================================================
+# 9. CHECK POLYGON OVERLAPS
+# ============================================================
+
+# Sum of all polygon areas
+summed_area <- sum(as.numeric(st_area(fixed_aea))) / 1e6
+
+# Unique area covered by polygons
+union_geometry <- st_union(st_geometry(fixed_aea))
+
+unique_area <- as.numeric(st_area(union_geometry)) / 1e6
+
+# Difference indicates overlapping area counted more than once
+overlap_area <- summed_area - unique_area
+
+cat("\n--- SPATIAL OVERLAP CHECK ---\n")
+
+cat("Summed polygon area:", round(summed_area, 2), "km2\n")
+cat("Unique polygon area:", round(unique_area, 2), "km2\n")
+cat("Excess area from overlaps:", round(overlap_area, 2), "km2\n")
