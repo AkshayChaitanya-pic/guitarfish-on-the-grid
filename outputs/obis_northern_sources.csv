@@ -1,0 +1,20 @@
+"dataset_id","datasetName","basisOfRecord","records"
+"eaea291a-1e1d-4382-b86f-ac3cc15b8d5a","iNaturalist research-grade observations","HumanObservation",25
+"031dba90-d480-419a-a562-be9a34bc5c49",NA,"HumanObservation",15
+"0820b10a-5710-4e90-b9ed-a2ad7c7ec742",NA,"MachineObservation",10
+"a0737a06-66ef-41e7-9458-9c05f53340b5",NA,"PreservedSpecimen",8
+"2891a788-9f30-4413-8f73-9e7686890e9d","AM","PreservedSpecimen",6
+"2891a788-9f30-4413-8f73-9e7686890e9d","QM","PreservedSpecimen",6
+"e06daf5d-9e6b-44e1-a6a7-cc91a3ee1f3b",NA,"PreservedSpecimen",6
+"2891a788-9f30-4413-8f73-9e7686890e9d","MAGNT","PreservedSpecimen",5
+"f17d8dae-4125-4a45-a491-81f8d018e19c",NA,"PreservedSpecimen",5
+"0820b10a-5710-4e90-b9ed-a2ad7c7ec742",NA,"HumanObservation",3
+"2891a788-9f30-4413-8f73-9e7686890e9d","CSIRO","PreservedSpecimen",3
+"5db2ffe4-8764-4647-9271-467192832793",NA,"PreservedSpecimen",3
+"292f775d-c300-4e21-8af2-b3b16a0a0ddc",NA,"HumanObservation",2
+"937da8a1-06b0-40ad-8ea4-af9db9490081",NA,"PreservedSpecimen",2
+"a50a3bc2-1632-44f3-ad49-3b8bae4e250e",NA,"HumanObservation",2
+"2a3f2498-1f94-4756-addf-dccccfb26b94",NA,"HumanObservation",1
+"43b57b3c-ca35-48c2-8a6a-76d9116def90","A checklist of Chondrichthyan fishes of Papua New Guinea","PreservedSpecimen",1
+"97d434fe-2a1b-47ab-8b76-7789685bf116",NA,"HumanObservation",1
+"d6d6fe4c-425f-4ce7-bf28-7a6befaeb413",NA,"PreservedSpecimen",1

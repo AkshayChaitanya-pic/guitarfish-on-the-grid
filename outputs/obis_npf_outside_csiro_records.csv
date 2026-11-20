@@ -1,0 +1,16 @@
+"scientificName","longitude","latitude","eventDate","year","datasetName","dataset_id","basisOfRecord","coordinateUncertaintyInMeters","flags"
+"Glaucostegus typus",136.83,-13.81,"2019-04-09",NA,NA,"0820b10a-5710-4e90-b9ed-a2ad7c7ec742","MachineObservation",500,"NO_DEPTH"
+"Glaucostegus typus",136.83,-13.84,"2019-04-05",NA,NA,"0820b10a-5710-4e90-b9ed-a2ad7c7ec742","MachineObservation",500,"NO_DEPTH"
+"Glaucostegus typus",141.8,-12.7,NA,"1993","CSIRO","2891a788-9f30-4413-8f73-9e7686890e9d","PreservedSpecimen",NA,"NO_DEPTH"
+"Glaucostegus typus",136.84,-13.82,"2019-04-07",NA,NA,"0820b10a-5710-4e90-b9ed-a2ad7c7ec742","MachineObservation",500,"NO_DEPTH"
+"Glaucostegus typus",136.83,-13.84,"2019-04-04",NA,NA,"0820b10a-5710-4e90-b9ed-a2ad7c7ec742","MachineObservation",500,"NO_DEPTH"
+"Glaucostegus typus",141.8,-12.7,"1993-06-05",NA,NA,"5db2ffe4-8764-4647-9271-467192832793","PreservedSpecimen",100,NA
+"Glaucostegus typus",136.84,-13.82,"2019-04-06",NA,NA,"0820b10a-5710-4e90-b9ed-a2ad7c7ec742","MachineObservation",500,"NO_DEPTH"
+"Glaucostegus typus",136.83,-13.81,"2019-04-07",NA,NA,"0820b10a-5710-4e90-b9ed-a2ad7c7ec742","MachineObservation",500,"NO_DEPTH"
+"Glaucostegus typus",136.81,-13.85,"2019-04-02 02:25:41",NA,NA,"0820b10a-5710-4e90-b9ed-a2ad7c7ec742","HumanObservation",100,NA
+"Glaucostegus typus",136.82,-13.82,"2019-04-08",NA,NA,"0820b10a-5710-4e90-b9ed-a2ad7c7ec742","MachineObservation",500,"NO_DEPTH"
+"Glaucostegus typus",136.83,-13.84,"2019-04-07",NA,NA,"0820b10a-5710-4e90-b9ed-a2ad7c7ec742","MachineObservation",500,"NO_DEPTH"
+"Glaucostegus typus",136.81,-13.86,"2019-04-03 02:25:54",NA,NA,"0820b10a-5710-4e90-b9ed-a2ad7c7ec742","HumanObservation",100,"ON_LAND"
+"Glaucostegus typus",136.83,-13.84,"2019-04-06",NA,NA,"0820b10a-5710-4e90-b9ed-a2ad7c7ec742","MachineObservation",500,"NO_DEPTH"
+"Glaucostegus typus",136.83,-13.81,"2019-04-08",NA,NA,"0820b10a-5710-4e90-b9ed-a2ad7c7ec742","MachineObservation",500,"NO_DEPTH"
+"Glaucostegus typus",136.81,-13.86,"2019-04-03 02:25:53",NA,NA,"0820b10a-5710-4e90-b9ed-a2ad7c7ec742","HumanObservation",100,"ON_LAND"
