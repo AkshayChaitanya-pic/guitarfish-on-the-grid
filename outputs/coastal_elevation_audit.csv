@@ -1,0 +1,10 @@
+"RelativeIntensity","DepthCategory","Area_km2"
+"Low","0-100 m",85911.2167085142
+"Low","Deeper than 100 m",5.65290806703755
+"Low","GEBCO elevation >= 0 m",3066.31068297547
+"Medium","0-100 m",25481.5950897225
+"Medium","Deeper than 100 m",0
+"Medium","GEBCO elevation >= 0 m",36.8227152346166
+"High","0-100 m",2911.08016657808
+"High","Deeper than 100 m",0
+"High","GEBCO elevation >= 0 m",0
