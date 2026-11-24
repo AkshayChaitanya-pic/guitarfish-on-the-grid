@@ -548,16 +548,43 @@ map_colours <- c(
 )
 
 # ------------------------------------------------------------
-# 14.6 Construct refined map
+# 14.6 Prepare geographic labels
+# ------------------------------------------------------------
+
+region_labels <- data.frame(
+  name = c(
+    "Arafura Sea",
+    "Gulf of\nCarpentaria",
+    "Northern Australia"
+  ),
+  longitude = c(134.0, 139.1, 134.1),
+  latitude = c(-10.7, -14.0, -16.3),
+  type = c("Ocean", "Ocean", "Land")
+)
+
+region_labels <- st_as_sf(
+  region_labels,
+  coords = c("longitude", "latitude"),
+  crs = 4326
+) |>
+  st_transform(target_crs)
+
+# ------------------------------------------------------------
+# 14.7 Construct final exposure map
 # ------------------------------------------------------------
 
 final_exposure_map <- ggplot() +
   
+  # Land and coastline
+  
   geom_sf(
     data = land,
     fill = "#F1EFEA",
-    colour = NA
+    colour = "#C5C9C7",
+    linewidth = 0.25
   ) +
+  
+  # Fishing intensity and overlap polygons
   
   geom_sf(
     data = map_polygons,
@@ -565,7 +592,36 @@ final_exposure_map <- ggplot() +
     colour = NA
   ) +
   
-  # Alternating scale bar segments
+  # CSIRO expert distribution boundary
+  
+  geom_sf(
+    data = csiro,
+    aes(linetype = "CSIRO expert range"),
+    fill = NA,
+    colour = "#175676",
+    linewidth = 0.65
+  ) +
+  
+  # Geographic labels
+  
+  geom_sf_text(
+    data = filter(region_labels, type == "Ocean"),
+    aes(label = name),
+    colour = "#527D91",
+    fontface = "italic",
+    size = 4
+  ) +
+  
+  geom_sf_text(
+    data = filter(region_labels, type == "Land"),
+    aes(label = name),
+    colour = "#858A85",
+    fontface = "bold",
+    size = 4.2
+  ) +
+  
+  # Scale bar
+  
   geom_segment(
     data = scale_bar,
     aes(
@@ -578,7 +634,6 @@ final_exposure_map <- ggplot() +
     colour = c("#243746", "#FFFFFF")
   ) +
   
-  # Scale bar outline
   geom_segment(
     aes(
       x = scale_x,
@@ -595,7 +650,7 @@ final_exposure_map <- ggplot() +
     x = scale_x,
     y = scale_y - 30000,
     label = "0",
-    size = 3
+    size = 3.4
   ) +
   
   annotate(
@@ -603,7 +658,7 @@ final_exposure_map <- ggplot() +
     x = scale_x + scale_length_m / 2,
     y = scale_y - 30000,
     label = "100",
-    size = 3
+    size = 3.4
   ) +
   
   annotate(
@@ -611,10 +666,11 @@ final_exposure_map <- ggplot() +
     x = scale_x + scale_length_m,
     y = scale_y - 30000,
     label = "200 km",
-    size = 3
+    size = 3.4
   ) +
   
-  # North arrow
+  # Grid north arrow
+  
   annotate(
     "segment",
     x = north_x,
@@ -622,9 +678,9 @@ final_exposure_map <- ggplot() +
     y = north_y - 45000,
     yend = north_y,
     arrow = arrow(
-      length = grid::unit(0.22, "cm")
+      length = grid::unit(0.25, "cm")
     ),
-    linewidth = 0.6,
+    linewidth = 0.7,
     colour = "#243746"
   ) +
   
@@ -632,77 +688,155 @@ final_exposure_map <- ggplot() +
     "text",
     x = north_x,
     y = north_y + 28000,
-    label = "N",
+    label = "GN",
     fontface = "bold",
-    size = 3.5
+    size = 3.5,
+    colour = "#243746"
   ) +
+  
+  # Legend
   
   scale_fill_manual(
     values = map_colours,
-    name = "NPF fishing intensity / overlap",
+    name = "Fishing intensity and range overlap",
+    labels = c(
+      "Low" = "Low (<0.25 days/km²)",
+      "Medium" = "Medium (0.25-1.0)",
+      "High" = "High (1.0-2.0)",
+      "Outside expert distribution" = "Outside range"
+    ),
     drop = FALSE
   ) +
   
+  scale_linetype_manual(
+    name = NULL,
+    values = c(
+      "CSIRO expert range" = "dashed"
+    )
+  ) +
+  
+  guides(
+    fill = guide_legend(
+      order = 1,
+      nrow = 1,
+      title.position = "top"
+    ),
+    linetype = guide_legend(
+      order = 2,
+      override.aes = list(
+        colour = "#175676",
+        linewidth = 0.9
+      )
+    )
+  ) +
+  
+  # Coordinate system
+  
   coord_sf(
+    crs = st_crs(target_crs),
     xlim = c(x_min, x_max),
     ylim = c(y_min, y_max),
     datum = st_crs(4326),
     expand = FALSE
   ) +
   
+  # Scientific titles and interpretation
+  
   labs(
-    title = "Guitarfish on the Grid",
+    title = "Potential trawl exposure of giant guitarfish",
     subtitle = paste(
-      "Spatial overlap between 2024 NPF fishing intensity",
-      "and the giant guitarfish expert distribution"
+      "2024 Northern Prawn Fishery",
+      "| CSIRO expert distribution"
     ),
     x = "Longitude",
     y = "Latitude",
     caption = paste(
-      "Coloured intensity classes occur within the CSIRO",
-      "expert-derived distribution; grey indicates mapped",
-      "fishing areas outside that distribution.",
-      "\nBaseline vector overlap (not depth-screened).",
-      "Overlap is not a measure of bycatch or mortality."
+      "Coloured fishing areas fall within the expert range; grey areas fall outside it.",
+      "Baseline vector overlap, before bathymetric screening.",
+      "Potential spatial exposure does not represent observed bycatch or mortality.",
+      "Sources: ABARES (2024 fishing intensity), CSIRO expert range, Natural Earth.",
+      sep = "\n"
     )
   ) +
   
-  theme_minimal(base_size = 12) +
+  theme_minimal(base_size = 14) +
   
   theme(
+    
     plot.title = element_text(
       face = "bold",
-      size = 19,
-      colour = "#183247"
+      size = 21,
+      colour = "#173247"
     ),
     
     plot.subtitle = element_text(
-      size = 10.5,
-      colour = "#52616D"
+      size = 12,
+      colour = "#536572",
+      margin = margin(b = 12)
     ),
     
-    plot.caption = element_text(
-      size = 8.5,
-      colour = "#596671",
-      hjust = 0,
-      lineheight = 1.2
+    panel.background = element_rect(
+      fill = "#EAF3F7",
+      colour = NA
+    ),
+    
+    panel.border = element_rect(
+      colour = "#CDD8DF",
+      fill = NA,
+      linewidth = 0.5
     ),
     
     panel.grid.major = element_line(
-      colour = "#DEE4E7",
-      linewidth = 0.25
+      colour = "#D2E0E7",
+      linewidth = 0.3
+    ),
+    
+    panel.grid.minor = element_blank(),
+    
+    axis.text = element_text(
+      colour = "#536572",
+      size = 11
+    ),
+    
+    axis.title = element_text(
+      colour = "#243746",
+      size = 12
     ),
     
     legend.position = "bottom",
-    legend.title = element_text(face = "bold"),
+    legend.box = "vertical",
     
-    legend.text = element_text(size = 9),
+    legend.title = element_text(
+      face = "bold",
+      size = 11
+    ),
     
-    plot.margin = margin(16, 20, 16, 16)
+    legend.text = element_text(
+      size = 10.5
+    ),
+    
+    legend.key.width = grid::unit(0.8, "cm"),
+    
+    legend.spacing.y = grid::unit(0.05, "cm"),
+    
+    plot.caption = element_text(
+      size = 9,
+      colour = "#647480",
+      hjust = 0,
+      lineheight = 1.2,
+      margin = margin(t = 10)
+    ),
+    
+    plot.margin = margin(18, 22, 15, 18),
+    
+    plot.background = element_rect(
+      fill = "white",
+      colour = NA
+    )
   )
 
 # ------------------------------------------------------------
-# 14.7 Display and export
+# 14.8 Display and export
 # ------------------------------------------------------------
 
 print(final_exposure_map)
@@ -713,12 +847,11 @@ ggsave(
     "15_final_spatial_exposure_map.png"
   ),
   plot = final_exposure_map,
-  width = 12,
+  width = 13.33,
   height = 7.5,
-  dpi = 350,
+  dpi = 300,
   bg = "white"
 )
 
-cat("\nRefined final exposure map exported.\n")
-
+cat("\nFinal spatial exposure map exported.\n")
 

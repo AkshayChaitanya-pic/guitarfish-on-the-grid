@@ -158,19 +158,21 @@ csiro_map <- suppressWarnings(
 
 
 # ============================================================
-# 10. REFINED SPATIAL EVIDENCE MAP
+# 10. FINAL SPATIAL EVIDENCE MAP
 # ============================================================
 
 library(scales)
 
-# Explicitly distinguish observation-period colours
+# ------------------------------------------------------------
+# 10.1 Observation categories
+# ------------------------------------------------------------
+
 period_colours <- c(
-  "Historical" = "#747474",
-  "Recent (2020-2026)" = "#174F91",
-  "Undated" = "#B07A35"
+  "Recent (2020-2026)" = "#175676",
+  "Historical" = "#737B83",
+  "Undated" = "#A66B24"
 )
 
-# Define the ON_LAND flag as a separate mapping category
 obis_map <- obis_map |>
   mutate(
     quality_category = if_else(
@@ -188,54 +190,225 @@ obis_map <- obis_map |>
     )
   )
 
+# ------------------------------------------------------------
+# 10.2 Geographic labels
+# ------------------------------------------------------------
+
+region_labels <- data.frame(
+  name = c(
+    "Arafura Sea",
+    "Gulf of\nCarpentaria",
+    "Northern Australia"
+  ),
+  longitude = c(134.0, 139.1, 134.1),
+  latitude = c(-10.7, -14.0, -16.3),
+  type = c("Ocean", "Ocean", "Land")
+)
+
+region_labels <- st_as_sf(
+  region_labels,
+  coords = c("longitude", "latitude"),
+  crs = 4326
+) |>
+  st_transform(3577)
+
+# ------------------------------------------------------------
+# 10.3 Map extent and cartographic elements
+# ------------------------------------------------------------
+
+map_bbox <- st_bbox(study_window)
+
+x_min <- as.numeric(map_bbox["xmin"])
+x_max <- as.numeric(map_bbox["xmax"])
+y_min <- as.numeric(map_bbox["ymin"])
+y_max <- as.numeric(map_bbox["ymax"])
+
+scale_x <- x_min + 100000
+scale_y <- y_min + 90000
+
+north_x <- x_max - 110000
+north_y <- y_max - 120000
+
+# ------------------------------------------------------------
+# 10.4 Construct spatial evidence map
+# ------------------------------------------------------------
+
 p_spatial <- ggplot() +
+  
+  # Geographic background
   
   geom_sf(
     data = australia,
-    fill = "#EAE8E2",
-    colour = "#9A9A94",
+    fill = "#F1EFEA",
+    colour = "#C5C9C7",
     linewidth = 0.25
   ) +
+  
+  # Muted fishing intensity background
   
   geom_sf(
     data = npf,
     aes(fill = RelativeIntensity),
     colour = NA,
-    alpha = 0.9
+    alpha = 0.65
   ) +
   
+  # Expert distribution boundary
+  
   geom_sf(
-    data = csiro_map,
+    data = csiro,
     fill = NA,
-    colour = "#385B7A",
+    colour = "#175676",
     linewidth = 0.45,
-    linetype = "longdash"
+    linetype = "dashed"
   ) +
   
+  # Geographic labels
+  
+  geom_sf_text(
+    data = filter(region_labels, type == "Ocean"),
+    aes(label = name),
+    colour = "#527D91",
+    fontface = "italic",
+    size = 3.8
+  ) +
+  
+  geom_sf_text(
+    data = filter(region_labels, type == "Land"),
+    aes(label = name),
+    colour = "#858A85",
+    fontface = "bold",
+    size = 4
+  ) +
+  
+  # Historical and undated observations
+  
   geom_sf(
-    data = obis_map,
+    data = filter(
+      obis_map,
+      observation_period != "Recent (2020-2026)"
+    ),
     aes(
       colour = observation_period,
       shape = quality_category
     ),
-    size = 2.6,
+    size = 2.8,
     stroke = 0.9,
-    alpha = 0.95
+    alpha = 0.85
   ) +
+  
+  # Recent observations plotted last
+  # to improve visibility
+  
+  geom_sf(
+    data = filter(
+      obis_map,
+      observation_period == "Recent (2020-2026)"
+    ),
+    aes(
+      colour = observation_period,
+      shape = quality_category
+    ),
+    size = 3.5,
+    stroke = 1.2
+  ) +
+  
+  # Scale bar
+  
+  annotate(
+    "segment",
+    x = scale_x,
+    xend = scale_x + 100000,
+    y = scale_y,
+    yend = scale_y,
+    linewidth = 2.8,
+    colour = "#243746"
+  ) +
+  
+  annotate(
+    "segment",
+    x = scale_x + 100000,
+    xend = scale_x + 200000,
+    y = scale_y,
+    yend = scale_y,
+    linewidth = 2.8,
+    colour = "white"
+  ) +
+  
+  annotate(
+    "segment",
+    x = scale_x,
+    xend = scale_x + 200000,
+    y = scale_y,
+    yend = scale_y,
+    linewidth = 0.3,
+    colour = "#243746"
+  ) +
+  
+  annotate(
+    "text",
+    x = scale_x,
+    y = scale_y - 35000,
+    label = "0",
+    size = 3.2
+  ) +
+  
+  annotate(
+    "text",
+    x = scale_x + 100000,
+    y = scale_y - 35000,
+    label = "100",
+    size = 3.2
+  ) +
+  
+  annotate(
+    "text",
+    x = scale_x + 200000,
+    y = scale_y - 35000,
+    label = "200 km",
+    size = 3.2
+  ) +
+  
+  # Grid north
+  
+  annotate(
+    "segment",
+    x = north_x,
+    xend = north_x,
+    y = north_y - 45000,
+    yend = north_y,
+    arrow = arrow(
+      length = grid::unit(0.22, "cm")
+    ),
+    colour = "#243746",
+    linewidth = 0.6
+  ) +
+  
+  annotate(
+    "text",
+    x = north_x,
+    y = north_y + 28000,
+    label = "GN",
+    fontface = "bold",
+    size = 3.5
+  ) +
+  
+  # Consistent fishing-intensity colours
   
   scale_fill_manual(
     name = "2024 fishing intensity",
     values = c(
-      "Low" = "#B7DCD3",
-      "Medium" = "#E6B86B",
-      "High" = "#BF6C61"
+      "Low" = "#66A68D",
+      "Medium" = "#E4B253",
+      "High" = "#C96962"
     ),
     breaks = c("Low", "Medium", "High")
   ) +
   
   scale_colour_manual(
-    name = "OBIS observation period",
-    values = period_colours
+    name = "Observation period",
+    values = period_colours,
+    drop = FALSE
   ) +
   
   scale_shape_manual(
@@ -247,69 +420,142 @@ p_spatial <- ggplot() +
   ) +
   
   coord_sf(
-    xlim = st_bbox(study_window)[c("xmin", "xmax")],
-    ylim = st_bbox(study_window)[c("ymin", "ymax")],
+    crs = st_crs(3577),
+    datum = st_crs(4326),
+    xlim = c(x_min, x_max),
+    ylim = c(y_min, y_max),
     expand = FALSE
   ) +
   
   labs(
-    title = "Giant guitarfish occurrence evidence and fishing activity",
-    subtitle = "Northern Australia | 2024 NPF intensity, CSIRO expert range and OBIS records",
+    title = "Giant guitarfish occurrence evidence",
+    subtitle = paste(
+      "OBIS records in relation to the CSIRO expert range",
+      "and 2024 fishing intensity"
+    ),
     x = "Longitude",
     y = "Latitude",
     caption = paste(
-      "CSIRO expert distribution: dashed blue boundary.",
-      "Crosses: OBIS records flagged ON_LAND; flags require further verification.",
-      "Fishing-intensity overlap does not establish encounters or bycatch.",
+      "Dashed blue boundary: CSIRO expert distribution.",
+      "Crosses indicate ON_LAND flags; absence of this flag does not establish record accuracy.",
+      "Multiple observations may share coordinates or overlap visually.",
+      "Occurrence records do not establish abundance, trawl encounters or bycatch.",
+      "Sources: OBIS, CSIRO, ABARES and Natural Earth.",
       sep = "\n"
     )
   ) +
   
   guides(
-    fill = guide_legend(order = 1),
-    colour = guide_legend(order = 2),
-    shape = guide_legend(order = 3)
+    fill = guide_legend(
+      order = 1,
+      nrow = 1
+    ),
+    colour = guide_legend(
+      order = 2,
+      override.aes = list(
+        shape = 16,
+        size = 3.5,
+        alpha = 1
+      )
+    ),
+    shape = guide_legend(
+      order = 3,
+      override.aes = list(
+        colour = "#243746",
+        size = 3.5,
+        alpha = 1
+      )
+    )
   ) +
   
-  theme_minimal(base_size = 12) +
+  theme_minimal(base_size = 13) +
   
   theme(
     plot.title = element_text(
       face = "bold",
-      size = 17
+      size = 21,
+      colour = "#173247"
     ),
+    
     plot.subtitle = element_text(
-      colour = "#555555",
-      size = 10
+      colour = "#536572",
+      size = 11.5,
+      margin = margin(b = 12)
     ),
+    
+    panel.background = element_rect(
+      fill = "#EAF3F7",
+      colour = NA
+    ),
+    
+    panel.border = element_rect(
+      colour = "#CDD8DF",
+      fill = NA,
+      linewidth = 0.5
+    ),
+    
     panel.grid.major = element_line(
-      colour = "#E6E6E6",
-      linewidth = 0.25
+      colour = "#D2E0E7",
+      linewidth = 0.3
     ),
+    
+    panel.grid.minor = element_blank(),
+    
+    axis.text = element_text(
+      colour = "#536572",
+      size = 11
+    ),
+    
+    axis.title = element_text(
+      colour = "#243746",
+      size = 12
+    ),
+    
     legend.position = "bottom",
     legend.box = "vertical",
-    legend.title = element_text(face = "bold"),
-    plot.caption = element_text(
-      colour = "#666666",
-      hjust = 0,
-      size = 9
+    
+    legend.title = element_text(
+      face = "bold",
+      size = 11
     ),
-    plot.margin = margin(12, 15, 12, 12)
+    
+    legend.text = element_text(
+      size = 10
+    ),
+    
+    legend.key.height = grid::unit(0.4, "cm"),
+    legend.spacing.y = grid::unit(0.05, "cm"),
+    legend.margin = margin(0, 0, 0, 0),
+    
+    plot.caption = element_text(
+      colour = "#647480",
+      hjust = 0,
+      size = 9,
+      lineheight = 1.2,
+      margin = margin(t = 10)
+    ),
+    
+    plot.margin = margin(18, 22, 15, 18),
+    
+    plot.background = element_rect(
+      fill = "white",
+      colour = NA
+    )
   )
 
 print(p_spatial)
 
 # ============================================================
-# 11. EXPORT REFINED DRAFT
+# 11. EXPORT FINAL SPATIAL EVIDENCE MAP
 # ============================================================
 
 ggsave(
   here("figures", "12_spatial_evidence_refined.png"),
   plot = p_spatial,
-  width = 13,
-  height = 8,
+  width = 13.33,
+  height = 8.5,
   dpi = 300,
   bg = "white"
 )
 
-cat("\nRefined spatial evidence map saved.\n")
+cat("\nFinal spatial evidence map saved.\n")

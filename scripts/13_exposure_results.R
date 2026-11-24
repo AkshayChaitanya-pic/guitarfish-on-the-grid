@@ -146,16 +146,31 @@ plot_data <- depth_class |>
     screening = recode(
       screening,
       baseline_percent = "Baseline overlap",
-      depth_percent = "GEBCO 0-100 m screen"
+      depth_percent = "Depth-screened overlap"
     ),
     screening = factor(
       screening,
       levels = c(
         "Baseline overlap",
-        "GEBCO 0-100 m screen"
+        "Depth-screened overlap"
       )
     )
   )
+
+# Consistent scientific colour palette
+
+exposure_colours <- c(
+  "Baseline overlap" = "#175676",
+  "Depth-screened overlap" = "#299D8F"
+)
+
+# Fishing-intensity class labels
+
+intensity_labels <- c(
+  "Low" = "Low\n(<0.25)",
+  "Medium" = "Medium\n(0.25-1.0)",
+  "High" = "High\n(1.0-2.0)"
+)
 
 # ============================================================
 # 7. BUILD THE QUANTITATIVE FIGURE
@@ -171,23 +186,33 @@ p_exposure <- ggplot(
 ) +
   
   geom_col(
-    position = position_dodge(width = 0.72),
-    width = 0.62
+    position = position_dodge(
+      width = 0.76,
+      reverse = TRUE
+    ),
+    width = 0.66
   ) +
   
   geom_text(
-    aes(label = sprintf("%.1f%%", overlap_percent)),
-    position = position_dodge(width = 0.72),
-    hjust = -0.12,
-    size = 4,
-    fontface = "bold"
+    aes(
+      label = sprintf("%.1f%%", overlap_percent)
+    ),
+    position = position_dodge(
+      width = 0.76,
+      reverse = TRUE
+    ),
+    hjust = -0.15,
+    size = 4.8,
+    fontface = "bold",
+    colour = "#243746"
   ) +
   
   scale_fill_manual(
-    values = c(
-      "Baseline overlap" = "#245A81",
-      "GEBCO 0-100 m screen" = "#78AFA6"
-    )
+    values = exposure_colours
+  ) +
+  
+  scale_y_discrete(
+    labels = intensity_labels
   ) +
   
   scale_x_continuous(
@@ -198,45 +223,99 @@ p_exposure <- ggplot(
   ) +
   
   labs(
-    title = "Mapped fishing area overlapping giant guitarfish distribution",
+    title = "Potential guitarfish exposure by fishing intensity",
     subtitle = paste(
-      "Percentage of each 2024 NPF fishing-intensity",
-      "class overlapping the CSIRO expert distribution"
+      "Spatial overlap with the CSIRO expert distribution",
+      "in the 2024 Northern Prawn Fishery"
     ),
-    x = "Proportion of mapped fishing-intensity area (%)",
-    y = NULL,
+    x = "Proportion of mapped fishing area (%)",
+    y = expression(
+      "Fishing intensity (days/km"^2*")"
+    ),
     fill = NULL,
     caption = paste(
-      "Baseline: vector intersection of NPF polygons and CSIRO expert range.",
-      "GEBCO screen: overlapping area classified as 0-100 m water depth.",
-      "Coastal elevation mismatches dominate excluded area.",
-      "Spatial coincidence does not measure bycatch, abundance or mortality.",
+      "Depth screen: submerged GEBCO cells within 0-100 m water depth.",
+      "Coastal elevation classifications dominate the excluded area.",
+      "Spatial overlap indicates potential exposure, not observed bycatch or mortality.",
       sep = "\n"
     )
   ) +
   
-  theme_minimal(base_size = 13) +
+  theme_minimal(base_size = 14) +
   
   theme(
     plot.title = element_text(
       face = "bold",
-      size = 17
+      size = 19,
+      colour = "#173247"
     ),
+    
     plot.subtitle = element_text(
-      colour = "#555555",
-      size = 11
+      colour = "#536572",
+      size = 11.5,
+      margin = margin(b = 18)
     ),
+    
     axis.text.y = element_text(
       face = "bold",
+      size = 12,
+      colour = "#243746",
+      lineheight = 1.1
+    ),
+    
+    axis.text.x = element_text(
+      size = 11,
+      colour = "#536572"
+    ),
+    
+    axis.title = element_text(
+      size = 12,
+      colour = "#243746"
+    ),
+    
+    axis.title.y = element_text(
+      margin = margin(r = 12)
+    ),
+    
+    axis.title.x = element_text(
+      margin = margin(t = 10)
+    ),
+    
+    panel.grid.major.y = element_blank(),
+    
+    panel.grid.major.x = element_line(
+      colour = "#E2E8ED",
+      linewidth = 0.5
+    ),
+    
+    panel.grid.minor = element_blank(),
+    
+    legend.position = "bottom",
+    
+    legend.text = element_text(
       size = 12
     ),
-    panel.grid.major.y = element_blank(),
-    panel.grid.minor = element_blank(),
-    legend.position = "bottom",
+    
+    legend.key.width = grid::unit(1.1, "cm"),
+    
     plot.caption = element_text(
       hjust = 0,
-      colour = "#666666",
-      size = 9
+      colour = "#647480",
+      size = 9.5,
+      lineheight = 1.2,
+      margin = margin(t = 12)
+    ),
+    
+    plot.margin = margin(
+      t = 20,
+      r = 25,
+      b = 15,
+      l = 15
+    ),
+    
+    plot.background = element_rect(
+      fill = "white",
+      colour = NA
     )
   )
 
@@ -249,14 +328,13 @@ print(p_exposure)
 ggsave(
   here("figures", "13_exposure_by_intensity.png"),
   plot = p_exposure,
-  width = 11,
-  height = 6.5,
+  width = 12,
+  height = 6.75,
   dpi = 300,
   bg = "white"
 )
 
-cat("\nQuantitative exposure figure saved.\n")
-
+cat("\nRefined quantitative exposure figure saved.\n")
 
 # ============================================================
 # 9. EXPORT ABSOLUTE AREA SUMMARY
@@ -281,3 +359,247 @@ write.csv(
 )
 
 cat("\nAbsolute area summary exported.\n")
+
+# ============================================================
+# 10. ABSOLUTE SPATIAL OVERLAP BY FISHING INTENSITY
+# ============================================================
+
+absolute_data <- depth_class |>
+  select(
+    RelativeIntensity,
+    baseline_km2,
+    depth_constrained_km2
+  ) |>
+  pivot_longer(
+    cols = c(baseline_km2, depth_constrained_km2),
+    names_to = "screening",
+    values_to = "area_km2"
+  ) |>
+  mutate(
+    RelativeIntensity = factor(
+      RelativeIntensity,
+      levels = c("High", "Medium", "Low")
+    ),
+    screening = recode(
+      screening,
+      baseline_km2 = "Baseline overlap",
+      depth_constrained_km2 = "Depth-screened overlap"
+    ),
+    screening = factor(
+      screening,
+      levels = names(exposure_colours)
+    )
+  )
+
+p_absolute <- p_exposure %+% absolute_data
+
+p_absolute <- p_absolute +
+  aes(x = area_km2) +
+  
+  scale_x_continuous(
+    breaks = seq(0, 100000, 20000),
+    labels = label_comma(),
+    limits = c(0, 105000),
+    expand = expansion(mult = c(0, 0))
+  ) +
+  
+  labs(
+    title = "Absolute spatial overlap by fishing intensity",
+    subtitle = paste(
+      "Geographic extent of potential giant guitarfish",
+      "exposure in the 2024 Northern Prawn Fishery"
+    ),
+    x = expression("Overlapping area (km"^2*")")
+  )
+
+# Replace percentage annotations with area annotations
+
+p_absolute$layers[[2]] <- geom_text(
+  aes(label = scales::comma(round(area_km2))),
+  position = position_dodge(
+    width = 0.76,
+    reverse = TRUE
+  ),
+  hjust = -0.15,
+  size = 4.8,
+  fontface = "bold",
+  colour = "#243746"
+)
+
+print(p_absolute)
+
+ggsave(
+  here("figures", "13_absolute_overlap_area.png"),
+  plot = p_absolute,
+  width = 12,
+  height = 6.75,
+  dpi = 300,
+  bg = "white"
+)
+
+cat("\nAbsolute overlap figure saved.\n")
+
+# ============================================================
+# 11. BATHYMETRIC SCREENING EXCLUSION ANALYSIS
+# ============================================================
+
+exclusion_plot_data <- exclusion_audit |>
+  summarise(
+    `Elevation >= 0 m` = sum(non_submerged_km2),
+    `Water deeper than 100 m` = sum(deep_km2)
+  ) |>
+  pivot_longer(
+    cols = everything(),
+    names_to = "exclusion_reason",
+    values_to = "area_km2"
+  ) |>
+  mutate(
+    percentage = 100 * area_km2 / sum(area_km2),
+    exclusion_reason = factor(
+      exclusion_reason,
+      levels = c(
+        "Water deeper than 100 m",
+        "Elevation >= 0 m"
+      )
+    ),
+    label = sprintf(
+      "%s km² (%.2f%%)",
+      scales::comma(area_km2, accuracy = 0.01),
+      percentage
+    )
+  )
+
+print(exclusion_plot_data)
+
+total_excluded <- sum(exclusion_plot_data$area_km2)
+
+# ------------------------------------------------------------
+# 11.1 Construct exclusion figure
+# ------------------------------------------------------------
+
+p_exclusion <- ggplot(
+  exclusion_plot_data,
+  aes(
+    x = percentage,
+    y = exclusion_reason,
+    fill = exclusion_reason
+  )
+) +
+  
+  geom_col(
+    width = 0.48
+  ) +
+  
+  geom_text(
+    aes(label = label),
+    hjust = -0.08,
+    size = 4.8,
+    fontface = "bold",
+    colour = "#243746"
+  ) +
+  
+  scale_fill_manual(
+    values = c(
+      "Elevation >= 0 m" = "#175676",
+      "Water deeper than 100 m" = "#E4B253"
+    ),
+    guide = "none"
+  ) +
+  
+  scale_x_continuous(
+    limits = c(0, 140),
+    breaks = seq(0, 100, 20),
+    labels = scales::label_percent(scale = 1),
+    expand = expansion(mult = c(0, 0))
+  ) +
+  
+  labs(
+    title = "What did the bathymetric screen exclude?",
+    subtitle = paste0(
+      "Total excluded overlap area: ",
+      scales::comma(total_excluded, accuracy = 0.01),
+      " km²"
+    ),
+    x = "Proportion of total excluded area (%)",
+    y = NULL,
+    caption = paste(
+      "GEBCO screening retained submerged cells within the documented 0-100 m depth range.",
+      "Non-negative elevation classifications may reflect coastal alignment and raster resolution.",
+      "Excluded areas should not automatically be interpreted as unsuitable guitarfish habitat.",
+      "Source: GEBCO 2026 and spatial overlap analysis.",
+      sep = "\n"
+    )
+  ) +
+  
+  theme_minimal(base_size = 14) +
+  
+  theme(
+    plot.title = element_text(
+      face = "bold",
+      size = 21,
+      colour = "#173247"
+    ),
+    
+    plot.subtitle = element_text(
+      colour = "#536572",
+      size = 13,
+      margin = margin(b = 18)
+    ),
+    
+    axis.text.y = element_text(
+      face = "bold",
+      size = 12,
+      colour = "#243746"
+    ),
+    
+    axis.text.x = element_text(
+      size = 11,
+      colour = "#536572"
+    ),
+    
+    axis.title.x = element_text(
+      size = 12,
+      margin = margin(t = 12)
+    ),
+    
+    panel.grid.major.y = element_blank(),
+    
+    panel.grid.major.x = element_line(
+      colour = "#E2E8ED",
+      linewidth = 0.5
+    ),
+    
+    panel.grid.minor = element_blank(),
+    
+    plot.caption = element_text(
+      hjust = 0,
+      colour = "#647480",
+      size = 9.5,
+      lineheight = 1.2,
+      margin = margin(t = 15)
+    ),
+    
+    plot.margin = margin(20, 25, 15, 15),
+    
+    plot.background = element_rect(
+      fill = "white",
+      colour = NA
+    )
+  )
+
+print(p_exclusion)
+
+# ------------------------------------------------------------
+# 11.2 Export exclusion figure
+# ------------------------------------------------------------
+
+ggsave(
+  here("figures", "13_bathymetric_exclusions.png"),
+  plot = p_exclusion,
+  width = 12,
+  height = 6.75,
+  dpi = 300,
+  bg = "white"
+)
+
+cat("\nBathymetric exclusion figure saved.\n")
